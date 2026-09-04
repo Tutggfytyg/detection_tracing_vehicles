@@ -7,7 +7,9 @@ authors = [
     { name = "mykhailo karnydal", email = "mkarkadal@gmail.com" }
 ]
 requires-python = ">=3.14"
-dependencies = []
+dependencies = [
+    "huggingface-hub>=1.30.0",
+]
 
 [project.scripts]
 vehicale-detection-tracing = "vehicale_detection_tracing:main"
