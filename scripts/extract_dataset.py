@@ -5,9 +5,7 @@ from src.vehicale_detection_tracing.data.extract import extract_archive
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser(
-        description="Extract a dataset archive."
-    )
+    parser = argparse.ArgumentParser(description="Extract a dataset archive.")
 
     parser.add_argument(
         "archive",
