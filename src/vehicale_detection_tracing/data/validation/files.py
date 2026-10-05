@@ -1,9 +1,18 @@
 from pathlib import Path
 from PIL import Image
-from src.logger import logger
 
 
 class Files_validation:
+    def num_of_total_files(self, data_path: Path) -> int:
+        result = 0
+        for file_path in data_path.rglob("*"):
+            if not file_path.is_file():
+                continue
+            else:
+                result+=1
+        return result
+
+
     def validate_file_extensions(
         self, data_dir: Path, supported_extentions: list[str]
     ) -> bool | list[list[str]]:
@@ -15,25 +24,14 @@ class Files_validation:
 
             if file_path.suffix.lower() not in supported_extentions:
                 invalid_files_and_paths.extend(
-                    [file_path.suffix.lower(), str(file_path)]
+                    [[file_path.suffix.lower(), str(file_path)]]
                 )
 
-        if len(invalid_files_and_paths):
+        if invalid_files_and_paths:
             return invalid_files_and_paths
+        else:
+            return True
 
-        return True
-
-    def invalid_extention_paths_logging(
-        self, data_dir: Path, supported_extentions: list[str]
-    ) -> None:
-        ext_validation = self.validate_file_extensions(data_dir, supported_extentions)
-
-        if type(ext_validation) != bool:
-            for pairs in ext_validation:
-                for file_ext, file_path in pairs:
-                    logger.error(
-                        "Unsupported extension: %s", file_ext, "in: %s", file_path
-                    )
 
     def readableness_files_validation(self, data_dir: Path) -> list[Path] | bool:
         unreadable_files = []
@@ -50,7 +48,7 @@ class Files_validation:
             except OSError, SyntaxError, ValueError:
                 unreadable_files.append(file_path)
 
-        if len(unreadable_files) == 0:
+        if unreadable_files:
+            return unreadable_files
+        else:
             return True
-
-        return unreadable_files
