@@ -1,27 +1,20 @@
 from pathlib import Path
-from PIL import Image
 
 
 class Files_validation:
     def num_of_total_files(self, data_path: Path) -> int:
-        result = 0
-        for file_path in data_path.rglob("*"):
-            if not file_path.is_file():
-                continue
-            else:
-                result+=1
-        return result
+        return len(self.get_files_paths(data_path))
 
+    def get_files_paths(self, data_path: Path) -> list[Path]:
+        return [path for path in data_path.rglob("*") if path.is_file()]
 
     def validate_file_extensions(
-        self, data_dir: Path, supported_extentions: list[str]
-    ) -> bool | list[list[str]]:
+        self, data_path: Path, supported_extentions: list[str]
+    ) -> bool | list[str]:
         invalid_files_and_paths = []
+        files_paths = self.get_files_paths(data_path)
 
-        for file_path in data_dir.rglob("*"):
-            if not file_path.is_file():
-                continue
-
+        for file_path in files_paths:
             if file_path.suffix.lower() not in supported_extentions:
                 invalid_files_and_paths.extend(
                     [[file_path.suffix.lower(), str(file_path)]]
@@ -32,21 +25,17 @@ class Files_validation:
         else:
             return True
 
-
-    def readableness_files_validation(self, data_dir: Path) -> list[Path] | bool:
+    def readableness_files_validation(self, data_path: Path) -> list[str] | bool:
         unreadable_files = []
+        files_paths = self.get_files_paths(data_path)
 
-        for file_path in data_dir.rglob("*"):
+        for file_path in files_paths:
             try:
-                with Image.open(file_path) as image:
-                    image.verify()
+                with file_path.open("rb") as file:
+                    file.read(1)
 
-                # Actually decode the image data.
-                with Image.open(file_path) as image:
-                    image.load()
-
-            except OSError, SyntaxError, ValueError:
-                unreadable_files.append(file_path)
+            except OSError:
+                unreadable_files.append(str(file_path))
 
         if unreadable_files:
             return unreadable_files
