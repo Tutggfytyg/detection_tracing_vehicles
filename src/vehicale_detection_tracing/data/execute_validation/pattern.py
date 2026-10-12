@@ -48,7 +48,13 @@ class Valindation_Template:
             failed_train, failed_test, num_failed_train, num_failed_test = val_result
             percent_failed_train = num_failed_train / self.train_total * 100
             percent_failed_test = num_failed_test / self.test_total * 100
-            logger.error("Train failed: %s percent", percent_failed_train)
-            logger.error("Test failed: %s percent", percent_failed_test)
-            logger.error("%s train failed in: %s", type_of_validation, failed_train)
-            logger.error("%s test failed in: %s", type_of_validation, failed_test)
+            if percent_failed_train == 0.0:
+                logger.info("train split %s successeful", type_of_validation)
+            else:
+                logger.error("Train failed: %s percent", percent_failed_train)
+                logger.error("%s train failed in: %s", type_of_validation, failed_train)
+            if percent_failed_test == 0.0:
+                logger.info("test split %s successeful", type_of_validation)
+            else:
+                logger.error("Test failed: %s percent", percent_failed_test)
+                logger.error("%s test failed in: %s", type_of_validation, failed_test)
