@@ -4,11 +4,11 @@ from src.vehicale_detection_tracing.data.validation.annotations import (
     Annotation_validation,
 )
 from src.vehicale_detection_tracing.data.execute_validation.pattern import (
-    Valindation_Template,
+    Validation_Template,
 )
 
 
-class Execute_Annotations_Validation(Annotation_validation, Valindation_Template):
+class Execute_Annotations_Validation(Annotation_validation, Validation_Template):
     def __init__(
         self, train_path: Path, test_path: Path, annotation_formats: list[str]
     ) -> None:

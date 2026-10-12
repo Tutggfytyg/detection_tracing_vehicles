@@ -1,8 +1,7 @@
 from src.logger import logger
-from pathlib import Path
 
 
-class Valindation_Template:
+class Validation_Template:
     def __init__(self) -> None:
         self.train_total: int = 0
         self.test_total: int = 0

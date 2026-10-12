@@ -1,11 +1,11 @@
 from pathlib import Path
 from src.vehicale_detection_tracing.data.data_paths import train_set_path, test_set_path
 from src.vehicale_detection_tracing.data.validation.images import Image_Validation
-from src.vehicale_detection_tracing.data.execute_validation.pattern import Valindation_Template
+from src.vehicale_detection_tracing.data.execute_validation.pattern import Validation_Template
 import numpy as np
 
 
-class Execute_Images_Validation(Image_Validation, Valindation_Template):
+class Execute_Images_Validation(Image_Validation, Validation_Template):
     def __init__(self, train_path: Path, test_path: Path, supported_extetions: list[str]) -> None:
         self.train_path = train_path
         self.test_path = test_path

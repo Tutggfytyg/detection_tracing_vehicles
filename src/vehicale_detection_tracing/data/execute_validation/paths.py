@@ -1,12 +1,12 @@
 from src.vehicale_detection_tracing.data.execute_validation.pattern import (
-    Valindation_Template,
+    Validation_Template,
 )
 from pathlib import Path
 from src.vehicale_detection_tracing.data.validation.splits import path_validate
 from src.vehicale_detection_tracing.data.data_paths import train_set_path, test_set_path
 
 
-class Execute_Path_Validation(Valindation_Template):
+class Execute_Path_Validation(Validation_Template):
     def __init__(self) -> None:
         super().__init__()
         self.train_total = 1  # total number of datasets

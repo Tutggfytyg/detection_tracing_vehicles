@@ -2,11 +2,11 @@ from src.vehicale_detection_tracing.data.validation.files import Files_validatio
 from pathlib import Path
 from src.vehicale_detection_tracing.data.data_paths import train_set_path, test_set_path
 from src.vehicale_detection_tracing.data.execute_validation.pattern import (
-    Valindation_Template,
+    Validation_Template,
 )
 
 
-class Execute_Files_validation(Files_validation, Valindation_Template):
+class Execute_Files_validation(Files_validation, Validation_Template):
     def __init__(self, train_path: Path, test_path: Path) -> None:
         self.train_path = train_path
         self.test_path = test_path
