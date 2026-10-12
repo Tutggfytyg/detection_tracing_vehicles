@@ -1,144 +1,184 @@
 from pathlib import Path
 import pandas as pd
-from src.logger import logger
-import math
+import csv
 
 
 class Annotation_validation:
-    def annotation_existence_validation(
-        self, images_dir: Path, annotation_dir: Path, anotation_format: str
-    ) -> list[Path] | bool:
+    def get_annotation_paths(
+        self, data_path: Path, annotation_formats: list[str]
+    ) -> list[Path]:
+        return [
+            path
+            for path in data_path.rglob("*")
+            if path.is_file() and path.suffix.lower() in annotation_formats
+        ]
 
-        missing_annotations = []
+    def total_num_of_annotations(
+        self, data_path: Path, annotation_formats: list[str]
+    ) -> int:
+        return len(self.get_annotation_paths(data_path, annotation_formats))
 
-        for image_path in images_dir.rglob("*"):
-            if not image_path.is_file():
-                continue
-
-            relative_path = image_path.relative_to(images_dir)
-
-            annotation_path = annotation_dir / relative_path.with_suffix(
-                anotation_format
-            )
-
-            if not annotation_path.is_file():
-                missing_annotations.append(image_path)
-
-        if len(missing_annotations) == 0:
+    def validate_res(self, errors: list[str]) -> bool | list[str]:
+        if errors:
+            return errors
+        else:
             return True
-        return missing_annotations
 
-    def annoantion_empty_validation(
-        self,
-        annonation_extention: str,
-        annotation_dir: Path,
-    ) -> list[Path] | bool:
-        empty_files = []
+    def annotation_readableness_validation(
+        self, data_path: Path, annotation_formats: list[str]
+    ) -> list[str] | bool:
 
-        for annotation_path in annotation_dir.rglob(f"*.{annonation_extention}"):
-            df = pd.DataFrame
+        not_readble_annotations = []
+        annotation_paths = self.get_annotation_paths(data_path, annotation_formats)
+        for annotation_path in annotation_paths:
             try:
-                df = pd.read_csv(annotation_path)
-            except OSError, pd.errors.EmptyDataError, pd.errors.ParserError:
-                empty_files.append(annotation_path)
+                with annotation_path.open(
+                    "r", encoding="utf-8-sig", newline=""
+                ) as file:
+                    for _ in csv.reader(file):
+                        pass
+            except csv.Error:
+                not_readble_annotations.append(annotation_path)
 
-            if df.empty:
-                empty_files.append(annotation_path)
+        return self.validate_res(not_readble_annotations)
 
-        if len(empty_files) == 0:
-            return True
-        return empty_files
-
-    def annotation_columns_validation(
-        self, annotation_path: Path, expected_columns: list[str]
-    ) -> bool:
-        try:
-            df = pd.read_csv(annotation_path)
-        except OSError, pd.errors.EmptyDataError, pd.errors.ParserError:
-            return False
-
-        if len(df.columns) != len(expected_columns):
-            logger.error(
-                "Invalid number of annotation fields in %s: expected %d, got %d",
-                annotation_path,
-                len(expected_columns),
-                len(df.columns),
-            )
-            return False
-
-        if set(df.columns) != expected_columns:
-            logger.error(
-                "Invalid annotation fields in %s: %s",
-                annotation_path,
-                list(df.columns),
-            )
-            return False
-
-        return True
-
-    def invalid_class_ids_validation(
+    def annotation_schema_misisng_column_validation(
         self,
-        annotation_path: Path,
-        allowed_class_ids: set[int],
-    ) -> list[int] | bool:
-        invalid_class_ids = []
+        data_path: Path,
+        annotation_formats: list[str],
+        expected_columns: set[str],
+    ) -> list[str] | bool:
+        all_missing_columns = []
+        annotation_paths = self.get_annotation_paths(data_path, annotation_formats)
+        for annot_path in annotation_paths:
+            annonation = pd.read_csv(annot_path)
+            actual_columns = set(annonation.columns)
+            missing_columns_in_annot = expected_columns - actual_columns
+            if len(missing_columns_in_annot) > 0:
+                all_missing_columns.extend([[annot_path, missing_columns_in_annot]])
 
-        df = pd.read_csv(annotation_path)
+        return self.validate_res(all_missing_columns)
 
-        for class_id in df["class_id"]:
-            if pd.isna(class_id):
-                invalid_class_ids.append(class_id)
-                continue
-
-            if int(class_id) not in allowed_class_ids:
-                invalid_class_ids.append(int(class_id))
-
-        if len(invalid_class_ids) == 0:
-            return True
-        return invalid_class_ids
-
-    def coordinates_of_image_validation(
+    def annotation_schema_unexpected_column_validation(
         self,
-        annotation_path: Path,
-        image_width: int,
-        image_height: int,
-    ) -> list[tuple[int, str]] | bool:
-        df = pd.read_csv(annotation_path)
+        data_path: Path,
+        annotation_formats: list[str],
+        expected_columns: set[str],
+    ) -> list[str] | bool:
+        all_execpected_columns = []
+        annotation_paths = self.get_annotation_paths(data_path, annotation_formats)
 
-        invalid = []
+        for annot_path in annotation_paths:
+            annonation = pd.read_csv(annot_path)
+            actual_columns = set(annonation.columns)
+            enxected_columns_in_annot = actual_columns - expected_columns
+            if len(enxected_columns_in_annot) > 0:
+                all_execpected_columns.extend(
+                    [[str(annot_path), str(enxected_columns_in_annot)]]
+                )
 
-        for row_number, row in df.iterrows():
-            csv_row = row_number + 2
+        return self.validate_res(all_execpected_columns)
 
-            try:
-                x = float(row["x"])
-                y = float(row["y"])
-                width = float(row["width"])
-                height = float(row["height"])
-            except TypeError, ValueError:
-                invalid.append((csv_row, "coordinates are not numeric"))
-                continue
+    def get_img_file_names(
+        self, img_folder: Path, supported_images_extentions: list[str]
+    ) -> list[str]:
+        return [
+            path.name
+            for path in img_folder.iterdir()
+            if path.is_file() and path.suffix.lower() in supported_images_extentions
+        ]
 
-            coordinates = (x, y, width, height)
+    def get_img_file_names_from_annot(
+        self, annot_file_path: Path, column_name
+    ) -> list[str]:
+        annotataion = pd.read_csv(annot_file_path)
+        target_column = annotataion[column_name].tolist()
+        return target_column
 
-            if not all(math.isfinite(value) for value in coordinates):
-                invalid.append((csv_row, "coordinates contain NaN or infinity"))
-                continue
+    # column name it is name of filename in annotation files
+    def image_to_annotation_correspondence_validation(
+        self,
+        data_path: Path,
+        annotation_formats: list[str],
+        target_column_name,
+        supported_images_extentions: list[str],
+    ) -> list[str] | bool:
+        not_correspondant_annotaion_to_img_pairs = []
+        annotation_paths = self.get_annotation_paths(data_path, annotation_formats)
+        for annotation_path in annotation_paths:
+            img_dir = annotation_path.parent
+            img_file_names_from_folder = self.get_img_file_names(
+                img_dir, supported_images_extentions
+            )
 
-            if x < 0 or y < 0:
-                invalid.append((csv_row, "x or y is negative"))
-                continue
+            img_file_names_from_annot = self.get_img_file_names_from_annot(
+                annotation_path, target_column_name
+            )
+            unique_img_file_names_from_annot = set(img_file_names_from_annot)
+            uniq_img_file_names_from_folder = set(img_file_names_from_folder)
+            difference = (
+                unique_img_file_names_from_annot ^ uniq_img_file_names_from_folder
+            )
+            if difference:
+                difference_from_unique_img_file_names_from_annot = (
+                    difference & unique_img_file_names_from_annot
+                )
+                difference_from_uniq_img_file_names_from_folder = (
+                    difference & uniq_img_file_names_from_folder
+                )
+                not_correspondant_annotaion_to_img_pairs.extend(
+                    [
+                        [
+                            str(annotation_path),
+                            str(difference_from_unique_img_file_names_from_annot),
+                            str(difference_from_uniq_img_file_names_from_folder),
+                        ]
+                    ]
+                )
 
-            if width <= 0 or height <= 0:
-                invalid.append((csv_row, "width or height is not positive"))
-                continue
+        return self.validate_res(not_correspondant_annotaion_to_img_pairs)
 
-            right = x + width
-            bottom = y + height
+    def annotataion_bbox_validation(
+        self, data_path: Path, annotation_formats: list[str]
+    ):
+        invalid_bboxs = []
+        annotation_paths = self.get_annotation_paths(data_path, annotation_formats)
+        for annotation_path in annotation_paths:
+            with annotation_path.open("r", encoding="utf-8", newline="") as csv_file:
+                csv_reader = csv.DictReader(csv_file)
+                for row in csv_reader:
+                    width = float(row["width"])
+                    height = float(row["height"])
+                    xmin = float(row["xmin"])
+                    ymin = float(row["ymin"])
+                    xmax = float(row["xmax"])
+                    ymax = float(row["ymax"])
+                    x_axis = [xmax, xmin]
+                    y_axis = [ymax, ymin]
+                    if not all(0 <= number <= width for number in x_axis) and not all(
+                        0 <= number <= height for number in y_axis
+                    ):
+                        invalid_bboxs.extend([[[x_axis, y_axis], annotation_path]])
 
-            if right > image_width or bottom > image_height:
-                invalid.append((csv_row, "bounding box extends outside image"))
+        return self.validate_res(invalid_bboxs)
 
-        if len(invalid) == 0:
-            return True
-        return invalid
+    def annotation_classses_validation(
+        self,
+        data_path: Path,
+        annotation_formats: list[str],
+        expected_classes: list[str],
+    ):
+
+        invalid_classes = []
+        annotation_paths = self.get_annotation_paths(data_path, annotation_formats)
+
+        for annotation_path in annotation_paths:
+            with annotation_path.open("r", encoding="utf-8", newline="") as csv_file:
+                csv_reader = csv.DictReader(csv_file)
+
+                for row in csv_reader:
+                    class_name = row["class"]
+                    if class_name not in expected_classes:
+                        invalid_classes.extend([[class_name, annotation_path]])
+
+        return self.validate_res(invalid_classes)
