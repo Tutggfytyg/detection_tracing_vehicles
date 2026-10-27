@@ -69,7 +69,7 @@ class Annotation_Preprocessing:
             bbox_height = (ymax - ymin) / image_height
             id = None
             if class_name == "vehicle":
-                id = 1
+                id = 0
                 normalized_annot_info = [
                     str(annot_path),
                     img_filename,
@@ -126,7 +126,7 @@ class Annotation_Preprocessing:
                     new_annot_file_path.parent / img_filename_with_right_ext
                 )
                 target_annot_file.parent.mkdir(parents=True, exist_ok=True)
-                if id == 1:
+                if id == 0:
                     select_content = [
                         str(id),
                         str(center_x),
