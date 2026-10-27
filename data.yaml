@@ -1,0 +1,9 @@
+path: data/processed
+
+# 2. Image directories (relative to 'path' above)
+train: images/train  # training images (or path to a train.txt file listing image paths)
+test: images/test      # test images
+
+# 3. Class Names mapping (zero-indexed: 0, 1, 2...)
+names:
+  0: vehicle
