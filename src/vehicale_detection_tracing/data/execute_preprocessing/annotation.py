@@ -17,7 +17,7 @@ if __name__ == "__main__":
     target_format = ".txt"
     splits = {"train": train_set_path, "test": test_set_path}
     annotation_preprocessing = Execute_Annotation_Preprocessing()
-    annotation_preprocessing.exeute_pattern(
+    annotation_preprocessing.execute_pattern(
         splits,
         annotation_preprocessing.save_converted_to_target_format_annot_data,
         inp_supp_ext,

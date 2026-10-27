@@ -2,7 +2,7 @@ from pathlib import Path
 
 
 class Preprocessing_Pattern:
-    def exeute_pattern(
+    def execute_pattern(
         self,
         splits: dict[str, Path],
         method_to_execute,
