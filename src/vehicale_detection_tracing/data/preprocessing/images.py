@@ -1,8 +1,8 @@
 from pathlib import Path
 import shutil
 
-class Images_Preprocessing:
 
+class Images_Preprocessing:
     def get_img_paths(self, data_path: Path, supp_ext: list[str]) -> list[Path]:
         return [
             path
@@ -28,8 +28,6 @@ class Images_Preprocessing:
             new_img_file_path = self.change_path(
                 file_path, "unziped-ua-detrac", "images"
             )
-            new_img_file_path = self.change_path(
-                new_img_file_path, "raw", "processed"
-            )
+            new_img_file_path = self.change_path(new_img_file_path, "raw", "processed")
             new_img_file_path.parent.mkdir(parents=True, exist_ok=True)
             shutil.copy2(file_path, new_img_file_path)

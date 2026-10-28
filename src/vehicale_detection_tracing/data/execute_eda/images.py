@@ -21,7 +21,6 @@ if __name__ == "__main__":
     img_EDA = Execute_Img_EDA()
     supported_img_ext = [".jpg"]
 
-
     ext_stat = img_EDA.execute_eda(
         splits,
         img_EDA.count_img_by_extentions,

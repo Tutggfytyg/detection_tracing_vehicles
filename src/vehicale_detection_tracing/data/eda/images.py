@@ -117,7 +117,6 @@ class Images_EDA:
         distrubution = Counter()
 
         for image_path in self.get_images_paths(data_path, supported_ext):
-
             image = cv2.imread(str(image_path), cv2.IMREAD_GRAYSCALE)
             laplacian = cv2.Laplacian(image, cv2.CV_64F)
             blur = float(laplacian.var())

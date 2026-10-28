@@ -2,8 +2,8 @@ from collections import Counter
 from pathlib import Path
 import pandas as pd
 
-class Edge_Case_EDA:
 
+class Edge_Case_EDA:
     def get_annot_path(self, data_path: Path, supp_exts: list[str]):
         return [
             path
