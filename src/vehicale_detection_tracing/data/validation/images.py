@@ -1,5 +1,5 @@
 from pathlib import Path
-from PIL import Image
+from PIL import Image, UnidentifiedImageError
 import numpy as np
 
 
@@ -33,13 +33,13 @@ class Image_Validation:
                 with Image.open(image_path) as image:
                     image.load()
 
-            except OSError, SyntaxError, ValueError:
-                unreadable_images.append(str(image_path))
+            except (OSError, ValueError, UnidentifiedImageError) as error:
+                unreadable_images.extend([str(image_path), str(error)])
 
         if unreadable_images:
             return unreadable_images
-        else:
-            return True
+
+        return True
 
     def dimensions_validation(
         self,
@@ -75,15 +75,15 @@ class Image_Validation:
         for image_path in images_paths:
             with Image.open(image_path) as image:
                 current_num_of_channels = len(image.getbands())
-                if current_num_of_channels != expected_channels:
-                    wrong_channel_num.extend(
-                        [str(current_num_of_channels), str(image_path)]
-                    )
+            if current_num_of_channels != expected_channels:
+                wrong_channel_num.extend(
+                    [str(current_num_of_channels), str(image_path)]
+                )
 
-        if not wrong_channel_num:
-            return True
-        else:
+        if wrong_channel_num:
             return wrong_channel_num
+        else:
+            return True
 
     def images_dtype_validation(
         self,
@@ -103,10 +103,10 @@ class Image_Validation:
             if current_image_dtype != expected_dtype:
                 invalid_dtype.extend([str(current_image_dtype), str(image_path)])
 
-        if not invalid_dtype:
-            return True
-        else:
+        if invalid_dtype:
             return invalid_dtype
+        else:
+            return True
 
     def color_formats_validation(
         self,
