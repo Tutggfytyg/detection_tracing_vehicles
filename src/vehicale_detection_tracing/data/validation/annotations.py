@@ -37,7 +37,7 @@ class Annotation_validation:
                 ) as file:
                     for _ in csv.reader(file):
                         pass
-            except csv.Error:
+            except csv.Error, UnicodeDecodeError:
                 not_readble_annotations.append(annotation_path)
 
         return self.validate_res(not_readble_annotations)
@@ -147,18 +147,21 @@ class Annotation_validation:
             with annotation_path.open("r", encoding="utf-8", newline="") as csv_file:
                 csv_reader = csv.DictReader(csv_file)
                 for row in csv_reader:
-                    width = float(row["width"])
-                    height = float(row["height"])
-                    xmin = float(row["xmin"])
-                    ymin = float(row["ymin"])
-                    xmax = float(row["xmax"])
-                    ymax = float(row["ymax"])
-                    x_axis = [xmax, xmin]
-                    y_axis = [ymax, ymin]
-                    if not all(0 <= number <= width for number in x_axis) and not all(
-                        0 <= number <= height for number in y_axis
-                    ):
-                        invalid_bboxs.extend([[[x_axis, y_axis], annotation_path]])
+                    try:
+                        width = float(row["width"])
+                        height = float(row["height"])
+                        xmin = float(row["xmin"])
+                        ymin = float(row["ymin"])
+                        xmax = float(row["xmax"])
+                        ymax = float(row["ymax"])
+                        x_axis = [xmax, xmin]
+                        y_axis = [ymax, ymin]
+                        if not all(0 <= number <= width for number in x_axis) and not all(
+                            0 <= number <= height for number in y_axis
+                        ):
+                            invalid_bboxs.extend([[[x_axis, y_axis], annotation_path]])
+                    except KeyError:
+                        invalid_bboxs.extend([["missing columns", annotation_path]])
 
         return self.validate_res(invalid_bboxs)
 
