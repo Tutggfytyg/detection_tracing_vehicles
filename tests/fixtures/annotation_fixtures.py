@@ -1,14 +1,16 @@
 import pytest
 import pandas as pd
 
+
 @pytest.fixture
 def empty_csv_annot(tmp_path):
     csv_path = tmp_path / "empty.csv"
     csv_path.write_text("", encoding="utf-8")
     return csv_path
 
+
 @pytest.fixture
-def valid_annotations(tmp_path) -> Path:
+def valid_annotations(tmp_path):
 
     path = tmp_path / "test_annotation.csv"
     data = [
@@ -35,6 +37,7 @@ def valid_annotations(tmp_path) -> Path:
 
     return path
 
+
 @pytest.fixture
 def unreadable_annotation(tmp_path):
     path = tmp_path / "unreaddble_annotation.csv"
@@ -60,7 +63,6 @@ def invalid_annotation(tmp_path):
             "height": 60,
             "unexpected_column": "unexpected",
         },
-
         # Invalid class
         {
             "filename": "img_002.jpg",
@@ -71,7 +73,6 @@ def invalid_annotation(tmp_path):
             "height": 60,
             "unexpected_column": "unexpected",
         },
-
         # Image does not exist
         {
             "filename": "missing_image.jpg",
@@ -82,7 +83,6 @@ def invalid_annotation(tmp_path):
             "height": 60,
             "unexpected_column": "unexpected",
         },
-
         # Negative coordinates
         {
             "filename": "img_003.jpg",
@@ -93,7 +93,6 @@ def invalid_annotation(tmp_path):
             "height": 60,
             "unexpected_column": "unexpected",
         },
-
         # Zero bounding-box width
         {
             "filename": "img_004.jpg",
@@ -136,6 +135,7 @@ def expected_columns():
         "target_id",
     }
 
+
 @pytest.fixture
 def target_column_name():
     return "filename"
@@ -147,5 +147,5 @@ def supp_img_ext() -> list[str]:
 
 
 @pytest.fixture
-def valid_classes()-> list[str]:
+def valid_classes() -> list[str]:
     return ["vehicle", "ignored"]
