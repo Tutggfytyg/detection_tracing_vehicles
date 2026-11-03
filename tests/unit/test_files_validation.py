@@ -5,12 +5,12 @@ import pytest
 class Test_Files_Validation(Files_validation):
     @pytest.mark.unit
     def test_valid_file_extention_is_accepted(
-        self, valid_annotations_file, valid_image, supp_files_ext
+        self, valid_annotations_file, image, supp_files_ext
     ):
         assert self.validate_file_extensions(
             valid_annotations_file.parent, supp_files_ext
         )
-        assert self.validate_file_extensions(valid_image, supp_files_ext)
+        assert self.validate_file_extensions(image, supp_files_ext)
 
     @pytest.mark.unit
     def test_not_valid_file_extention_is_rejected(
@@ -20,9 +20,9 @@ class Test_Files_Validation(Files_validation):
         assert isinstance(result, list)
 
     @pytest.mark.unit
-    def test_readable_file_is_accepted(self, valid_annotations_file, valid_image):
+    def test_readable_file_is_accepted(self, valid_annotations_file, image):
         assert self.readableness_files_validation(valid_annotations_file.parent)
-        assert self.readableness_files_validation(valid_image)
+        assert self.readableness_files_validation(image)
 
     @pytest.mark.unit
     def test_not_readable_file_is_rejected(self, unreadable_file):

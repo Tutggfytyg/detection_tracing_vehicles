@@ -4,8 +4,8 @@ import pandas as pd
 
 
 @pytest.fixture
-def valid_image(tmp_path):
-    image_path = tmp_path / "valid_rgb.jpg"
+def image(tmp_path):
+    image_path = tmp_path / "rgb.jpg"
 
     image = Image.new("RGB", (100, 100), color=(0, 0, 0))
     image.save(image_path, format="JPEG")
