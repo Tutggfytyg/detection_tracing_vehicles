@@ -34,7 +34,7 @@ class Files_validation:
                 with file_path.open("rb") as file:
                     file.read(1)
 
-            except OSError:
+            except OSError, ValueError:
                 unreadable_files.append(str(file_path))
 
         if unreadable_files:
