@@ -1,3 +1,4 @@
+import math
 from pathlib import Path
 import csv
 
@@ -10,41 +11,80 @@ class Annotation_Preprocessing:
             if path.is_file() and path.suffix.lower() in supp_ext
         ]
 
-    def get_annot_data(self, data_path: Path, supp_ext: list[str]):
+    def has_empty_values(self, values: list[str]) -> bool:
+        return any(
+            value == None or
+            str(value).strip() == ""
+            or (isinstance(value, (int, float)) and math.isnan(value))
+            for value in values
+        )
+
+    def get_annot_data(self, data_path: Path, supp_ext: list[str]) -> list[str] | None:
         annot_data = []
         annot_paths = self.get_annot_paths(data_path, supp_ext)
         annot_ext = ".csv"
+        errors = []
         for annot_path in annot_paths:
             if annot_ext in supp_ext:
                 with annot_path.open("r", newline="", encoding="utf-8") as file:
                     reader = csv.DictReader(file)
                     for row in reader:
-                        xmin = row["xmin"]
-                        ymin = row["ymin"]
-                        xmax = row["xmax"]
-                        ymax = row["ymax"]
-                        class_name = row["class"]
-                        img_filename = row["filename"]
-                        image_width = row["width"]
-                        image_height = row["height"]
-                        annot_info = [
-                            str(annot_path),
-                            img_filename,
-                            class_name,
-                            xmin,
-                            ymin,
-                            xmax,
-                            ymax,
-                            image_width,
-                            image_height,
-                        ]
-                        annot_data.append(annot_info)
+                        try:
+                            xmin = row["xmin"]
+                            ymin = row["ymin"]
+                            xmax = row["xmax"]
+                            ymax = row["ymax"]
+                            class_name = row["class"]
+                            img_filename = row["filename"]
+                            image_width = row["width"]
+                            image_height = row["height"]
+                        except KeyError as e:
+                            errors.append(e)
+                        else:
+                            annot_info = [
+                                str(annot_path),
+                                img_filename,
+                                class_name,
+                                xmin,
+                                ymin,
+                                xmax,
+                                ymax,
+                                image_width,
+                                image_height,
+                            ]
+                            annot_data.append(annot_info)
+        if errors:
+            return None
+        else:
+            return annot_data
 
-        return annot_data
 
-    def annot_normalization(self, data_path: Path, supp_ext: list[str]):
+    def data_cleaning(self, data_path: Path, supp_ext: list[str]) -> list[str] | None:
         annot_stracture = self.get_annot_data(data_path, supp_ext)
+        if annot_stracture == None:
+            return None
+
+        if self.has_empty_values(annot_stracture):
+            cleaned_data = [
+                sublist
+                for sublist in annot_stracture
+                if not any(
+                    value is None or
+                    (str(value).strip() != "")
+                    or (isinstance(value, (int, float)) and math.isnan(value))
+                    for value in sublist
+                )
+            ]
+            return cleaned_data
+        else:
+            return annot_stracture
+
+    def annot_normalization(self, data_path: Path, supp_ext: list[str]) -> list[str] | None:
+        annot_stracture = self.data_cleaning(data_path, supp_ext)
+        if annot_stracture == None:
+            return None
         normalized_annot = []
+        errors = []
 
         for (
             annot_path,
@@ -57,31 +97,38 @@ class Annotation_Preprocessing:
             image_width,
             image_height,
         ) in annot_stracture:
-            xmin = float(xmin)
-            xmax = float(xmax)
-            ymin = float(ymin)
-            ymax = float(ymax)
-            image_width = float(image_width)
-            image_height = float(image_height)
-            center_x = (xmin + xmax) / 2 / image_width
-            center_y = (ymin + ymax) / 2 / image_height
-            bbox_width = (xmax - xmin) / image_width
-            bbox_height = (ymax - ymin) / image_height
-            id = None
-            if class_name == "vehicle":
-                id = 0
-                normalized_annot_info = [
-                    str(annot_path),
-                    img_filename,
-                    id,
-                    center_x,
-                    center_y,
-                    bbox_width,
-                    bbox_height,
-                ]
-                normalized_annot.append(normalized_annot_info)
+            try:
+                xmin = float(xmin)
+                xmax = float(xmax)
+                ymin = float(ymin)
+                ymax = float(ymax)
+                image_width = float(image_width)
+                image_height = float(image_height)
+            except (ValueError, TypeError) as e:
+                errors.append(e)
+            else:
+                center_x = (xmin + xmax) / 2 / image_width
+                center_y = (ymin + ymax) / 2 / image_height
+                bbox_width = (xmax - xmin) / image_width
+                bbox_height = (ymax - ymin) / image_height
+                id = None
+                if class_name == "vehicle":
+                    id = 0
+                    normalized_annot_info = [
+                        str(annot_path),
+                        img_filename,
+                        id,
+                        center_x,
+                        center_y,
+                        bbox_width,
+                        bbox_height,
+                    ]
+                    normalized_annot.append(normalized_annot_info)
 
-        return normalized_annot
+        if not errors:
+            return normalized_annot
+        else:
+            return None
 
     def change_path(
         self, old_file_path: Path, folder_name_to_change: str, new_folder_name: str
@@ -99,9 +146,10 @@ class Annotation_Preprocessing:
         data_path: Path,
         supp_inp_exts: list[str],
         target_annot_file_extention: str,
-    ):
+    ) -> None | bool:
         normalized_annotation = self.annot_normalization(data_path, supp_inp_exts)
-
+        if normalized_annotation == None:
+            return False
         for (
             old_annot_path,
             img_filename,
