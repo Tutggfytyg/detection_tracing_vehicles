@@ -160,8 +160,8 @@ class Annotation_validation:
                             0 <= number <= height for number in y_axis
                         ):
                             invalid_bboxs.extend([[[x_axis, y_axis], annotation_path]])
-                    except KeyError:
-                        invalid_bboxs.extend([["missing columns", annotation_path]])
+                    except (KeyError, ValueError) as e:
+                        invalid_bboxs.extend([[e, annotation_path]])
 
         return self.validate_res(invalid_bboxs)
 
