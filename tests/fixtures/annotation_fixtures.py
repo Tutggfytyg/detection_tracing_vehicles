@@ -1,3 +1,4 @@
+from math import nan
 import pytest
 import pandas as pd
 
@@ -14,21 +15,30 @@ def valid_annotations(tmp_path):
 
     path = tmp_path / "test_annotation.csv"
     data = [
+
         {
-            "filename": "img_001.jpg",
+            "filename":"img_001.jpg",
+            "width":"960",
+            "height":"540",
             "class": "vahicle",
-            "left": 100,
-            "top": 120,
-            "width": 80,
-            "height": 60,
+            "xmin":"40",
+            "ymin":"40",
+            "xmax": "70",
+            "ymax": "80",
+            "confidence":"1",
+            "target_id" : "1",
         },
         {
-            "filename": "img_002.jpg",
+            "filename":"img_002.jpg",
+            "width":"960",
+            "height":"540",
             "class": "vahicle",
-            "left": 200,
-            "top": 150,
-            "width": 160,
-            "height": 100,
+            "xmin":"60",
+            "ymin":"50",
+            "xmax": "80",
+            "ymax": "70",
+            "confidence":"1",
+            "target_id" : "1",
         },
     ]
 
@@ -53,14 +63,14 @@ def invalid_annotation(tmp_path):
     path = tmp_path / "invalid_annotation.csv"
 
     data = [
-        # Valid annotation
+        # invalid annotation
         {
             "filename": "img_001.jpg",
             "class": "car",
             "left": 100,
             "top": 120,
             "width": 80,
-            "height": 60,
+            "height": nan,
             "unexpected_column": "unexpected",
         },
         # Invalid class
@@ -101,8 +111,22 @@ def invalid_annotation(tmp_path):
             "top": 120,
             "width": 0,
             "height": 60,
-            "unexpected_column": "unexpected",
+            "unexpected_column": "None",
         },
+        #none value
+        {
+            "filename": "img_004.jpg",
+            "": None,
+            "left": 100,
+            "top": 120,
+            "width": "zero",
+            "height": 60,
+            "unexpected_column": "",
+        },
+        # missing
+        {
+            "": ""
+        }
     ]
 
     df = pd.DataFrame(data)
@@ -137,7 +161,7 @@ def expected_columns():
 
 
 @pytest.fixture
-def target_column_name():
+def target_column_name() -> str:
     return "filename"
 
 
@@ -149,3 +173,8 @@ def supp_img_ext() -> list[str]:
 @pytest.fixture
 def valid_classes() -> list[str]:
     return ["vehicle", "ignored"]
+
+
+@pytest.fixture
+def target_converted_annotation_ext() -> str:
+    return ".txt"
