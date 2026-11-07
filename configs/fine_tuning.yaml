@@ -1,0 +1,21 @@
+#model
+model: yolo26s.pt
+
+# training
+epochs: 50 # later change
+imgsz: 640
+batch: 2  # later change
+device: 0
+workers: 2  # later change
+
+# Optimization
+optimizer: auto
+patience: 15
+
+# Output
+save: true
+plots: true
+
+# Experiment
+project: runs/fine_tuning
+name: ua_detrac_yolo26s
